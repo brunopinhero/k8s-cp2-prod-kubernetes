@@ -446,3 +446,12 @@ Os testes demonstraram que a arquitetura implementada possui:
 - **Escalabilidade dinâmica** com HPA respondendo a mudanças de carga
 - **Persistência de dados** garantida através de volumes persistentes
 - **Tolerância a falhas** de componentes individuais sem impacto na aplicação
+
+## Evidências de Imagens
+
+As imagens abaixo demonstram a validação e o provisionamento da aplicação TechFleet Portal no cluster Kubernetes:
+
+| Docker Desktop - Validação de Recursos                                            | Sistema Provisionado Localmente                          |
+| --------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| ![Docker Desktop](screenshots/dockerdesktop.png)                                  | ![Sistema Local](screenshots/sistemaonline.png)          |
+| Comandos executados no Docker Desktop validando a criação dos recursos Kubernetes | Aplicação TechFleet Portal funcionando no ambiente local |
