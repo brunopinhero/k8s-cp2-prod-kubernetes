@@ -1,424 +1,341 @@
-# Kubernetes CP2 - Produção
+# TechFleet App Portal - Kubernetes CP2
 
-Este projeto demonstra a implementação de uma aplicação web utilizando Kubernetes com práticas de produção.
+Aplicacao estatica servida por Nginx e configurada via ConfigMap para demonstrar tecnicas de producao em Kubernetes. O projeto simula a migracao do portal interno da TechFleet para um cluster Kubernetes com requisitos de alta disponibilidade, seguranca e escalabilidade automatica.
 
-## 📝 Sobre o Projeto
+## Sobre o Projeto
 
-### Contexto Empresarial
+- **Aluno:** Bruno Pinheiro dos Santos - RM 556184  
+- **Curso:** FIAP Cloud Developer - Kubernetes & Serverless  
+- **Namespace padrao:** `producao`  
+- **Aplicacao:** `app-portal` (Nginx + conteudo HTML injetado por ConfigMap)
 
-Este projeto faz parte de uma iniciativa da **TechFleet**, empresa que está realizando a migração de suas aplicações monolíticas para uma arquitetura baseada em microserviços utilizando containers orquestrados pelo Kubernetes. A migração visa melhorar a escalabilidade, resiliência e eficiência operacional dos sistemas.
+## Componentes Principais
 
-### Aluno
+- `Namespace` dedicado (`producao`)
+- `ConfigMap` com todo o HTML da aplicacao
+- `Deployment` Nginx com 3 replicas, probes de liveness/readiness/startup e limites de recursos
+- `Service` `NodePort` expondo a porta 30080
+- `HorizontalPodAutoscaler` com gatilhos de CPU e memoria (3 a 10 replicas)
+- `NetworkPolicy` controlando ingress e egress
+- `PodDisruptionBudget` garantindo no minimo 2 pods saudaveis
+- `scale.yaml` para escalonamento manual rapido para 5 replicas
+- `kustomization.yaml` orquestrando todos os manifestos em `kubernetes/`
 
-- **Nome:** Bruno Pinheiro dos Santos
-- **RM:** 556184
-- **Curso:** FIAP - Cloud Developer Kubernetes & Serverless
+O script `deploy.sh` na raiz faz validacoes, aplica os manifestos via Kustomize e confirma o rollout dos pods.
 
-## 📋 Arquitetura da Solução
+## Pre-requisitos
 
-A aplicação segue uma arquitetura de microserviços implementada em Kubernetes, com:
+### Ferramentas comuns a todos os sistemas
 
-- **Frontend**: Interface de usuário em container separado
-- **Backend API**: Serviços RESTful containerizados
-- **Banco de Dados**: Persistência gerenciada pelo Kubernetes
-- **Ingress Controller**: Gerenciamento de tráfego externo
-- **ConfigMaps e Secrets**: Gerenciamento de configurações e dados sensíveis
+- Git  
+- `kubectl` 1.24 ou superior (com suporte a `kubectl apply -k`)  
+- Cluster Kubernetes local (Docker Desktop com Kubernetes, Minikube ou kind)  
+- Bash ou shell equivalente para rodar scripts  
+- Opcional: `minikube` para obter URL automatica do servico
 
-### Estratégias de Deploy
+### macOS
 
-- Uso de Probes (Readiness/Liveness) para garantir alta disponibilidade
-- Estratégia de Rolling Update para atualizações sem downtime
-- Limites de recursos definidos para garantir estabilidade
-- Monitoramento integrado para observabilidade
+1. Instale o Homebrew (caso ainda nao tenha):
 
-## 📋 Pré-requisitos
+   ```bash
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+   ```
 
-### Ferramentas Necessárias
+2. Instale o Docker Desktop e habilite o Kubernetes:
 
-- **Docker**: Para containerização
-- **Kubernetes**: Orquestração de containers
-- **kubectl**: CLI do Kubernetes
-- **Git**: Controle de versão
+   ```bash
+   brew install --cask docker
+   ```
 
-### Instalação por Sistema Operacional
+   - Abra o Docker Desktop.
+   - Settings > Kubernetes > marque "Enable Kubernetes" > Apply & Restart.
 
-#### 🍎 macOS
+3. Instale o `kubectl` (e opcionalmente o Minikube):
 
-**1. Instalar Homebrew (se não tiver):**
+   ```bash
+   brew install kubectl
+   brew install --cask minikube   # opcional
+   ```
 
-```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-```
+4. Valide a instalacao:
 
-**2. Instalar Docker Desktop:**
+   ```bash
+   kubectl version --client
+   kubectl config get-contexts
+   ```
 
-```bash
-brew install --cask docker
-```
+### Linux (Ubuntu/Debian)
 
-Ou baixe do [site oficial](https://www.docker.com/products/docker-desktop/)
+1. Instale Docker e dependencias:
 
-**3. Instalar kubectl:**
+   ```bash
+   sudo apt update
+   sudo apt install -y apt-transport-https ca-certificates curl gnupg lsb-release
+   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+   echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+   sudo apt update
+   sudo apt install -y docker-ce docker-ce-cli containerd.io
+   sudo usermod -aG docker $USER
+   newgrp docker
+   ```
 
-```bash
-brew install kubectl
-```
+2. Instale o `kubectl`:
 
-**4. Habilitar Kubernetes no Docker Desktop:**
+   ```bash
+   curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+   chmod +x kubectl
+   sudo mv kubectl /usr/local/bin/
+   ```
 
-- Abra o Docker Desktop
-- Vá em Settings → Kubernetes
-- Marque "Enable Kubernetes"
-- Clique em "Apply & Restart"
+3. Opcional - instale o Minikube:
 
-#### 🐧 Linux (Ubuntu/Debian)
+   ```bash
+   curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+   chmod +x minikube
+   sudo mv minikube /usr/local/bin/
+   minikube start --driver=docker
+   ```
 
-**1. Instalar Docker:**
+4. Valide:
 
-```bash
-# Atualizar pacotes
-sudo apt update
+   ```bash
+   kubectl version --client
+   kubectl cluster-info
+   ```
 
-# Instalar dependências
-sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
+### Windows 11/10
 
-# Adicionar chave GPG do Docker
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+1. Instale o Docker Desktop (via site oficial ou Chocolatey):
 
-# Adicionar repositório
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+   ```powershell
+   choco install docker-desktop
+   ```
 
-# Instalar Docker
-sudo apt update
-sudo apt install -y docker-ce docker-ce-cli containerd.io
+   - Abra o Docker Desktop.
+   - Settings > Kubernetes > Enable Kubernetes > Apply & Restart.
 
-# Adicionar usuário ao grupo docker
-sudo usermod -aG docker $USER
-newgrp docker
-```
+2. Instale o `kubectl`:
 
-**2. Instalar kubectl:**
+   ```powershell
+   choco install kubernetes-cli
+   ```
 
-```bash
-# Baixar kubectl
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+   (Alternativa: baixar o binario no site oficial e adiciona-lo ao PATH.)
 
-# Tornar executável
-chmod +x kubectl
+3. Opcional - instale o Minikube:
 
-# Mover para PATH
-sudo mv kubectl /usr/local/bin/
-```
+   ```powershell
+   choco install minikube
+   minikube start --driver=docker
+   ```
 
-**3. Instalar Minikube (para ambiente local):**
+4. Use Git Bash ou Windows Subsystem for Linux (WSL) para executar scripts bash. Para habilitar o WSL:
 
-```bash
-curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-chmod +x minikube
-sudo mv minikube /usr/local/bin/
-```
+   ```powershell
+   wsl --install
+   ```
 
-#### 🪟 Windows
+5. Valide:
 
-**1. Instalar Docker Desktop:**
+   ```powershell
+   kubectl version --client
+   kubectl config get-contexts
+   ```
 
-- Baixe do [site oficial](https://www.docker.com/products/docker-desktop/)
-- Execute o instalador
-- Reinicie o computador quando solicitado
-
-**2. Instalar kubectl via Chocolatey:**
-
-```powershell
-# Instalar Chocolatey (se não tiver)
-Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-
-# Instalar kubectl
-choco install kubernetes-cli
-```
-
-**Alternativa via download direto:**
-
-```powershell
-# Baixar kubectl
-curl.exe -LO "https://dl.k8s.io/release/v1.28.0/bin/windows/amd64/kubectl.exe"
-
-# Adicionar ao PATH (mover para uma pasta no PATH ou adicionar pasta atual ao PATH)
-```
-
-**3. Habilitar Kubernetes no Docker Desktop:**
-
-- Abra o Docker Desktop
-- Vá em Settings → Kubernetes
-- Marque "Enable Kubernetes"
-- Clique em "Apply & Restart"
-
-## 🚀 Executando Localmente
-
-### 1. Clonar o Repositório
+## Preparar o Repositorio
 
 ```bash
-git clone <url-do-repositorio>
+git clone https://github.com/<seu-usuario>/k8s-cp2-prod-kubernetes.git
 cd k8s-cp2-prod-kubernetes
+chmod +x deploy.sh
 ```
 
-### 2. Verificar Instalações
+Certifique-se de que `kubectl` aponta para o cluster desejado:
 
 ```bash
-# Verificar Docker
-docker --version
-
-# Verificar kubectl
-kubectl version --client
-
-# Verificar cluster Kubernetes
-kubectl cluster-info
-```
-
-### 3. Configurar Ambiente Local
-
-#### Para macOS e Windows (Docker Desktop):
-
-```bash
-# Verificar se o contexto está correto
 kubectl config current-context
-
-# Deve mostrar 'docker-desktop'
+kubectl get nodes
 ```
 
-#### Para Linux (Minikube):
+## Deploy por Sistema Operacional
+
+### macOS
 
 ```bash
-# Iniciar Minikube
-minikube start
-
-# Verificar status
-minikube status
-
-# Configurar kubectl para usar Minikube
-kubectl config use-context minikube
+./deploy.sh
 ```
 
-### 4. Aplicar Manifestos Kubernetes
-
-**Criar namespace (se necessário):**
+O script cria o namespace, aplica todos os manifestos com `kubectl apply -k kubernetes/`, aguarda os pods ficarem prontos e exibe os principais recursos. Ao final execute:
 
 ```bash
-kubectl create namespace cp2-prod
+kubectl get all,hpa,networkpolicy,pdb -n producao
+open http://localhost:30080
 ```
 
-**Aplicar todos os manifestos:**
+Caso prefira aplicar manualmente:
 
 ```bash
-# Aplicar ConfigMaps e Secrets primeiro
-kubectl apply -f k8s/configmaps/
-kubectl apply -f k8s/secrets/
-
-# Aplicar Services
-kubectl apply -f k8s/services/
-
-# Aplicar Deployments
-kubectl apply -f k8s/deployments/
-
-# Aplicar Ingress (se houver)
-kubectl apply -f k8s/ingress/
+kubectl apply -k kubernetes/
+kubectl wait --for=condition=ready pod -l app=app-portal -n producao --timeout=120s
 ```
 
-**Ou aplicar tudo de uma vez:**
+### Linux
 
 ```bash
-kubectl apply -f k8s/ --recursive
+./deploy.sh
 ```
 
-### 5. Verificar Deployment
-
-**Verificar pods:**
+Se estiver usando Minikube, garanta que o contexto ativo seja o dele (`kubectl config use-context minikube`). Depois do deploy valide:
 
 ```bash
-kubectl get pods -n cp2-prod
+kubectl get pods -n producao -o wide
+kubectl get svc/app-portal -n producao
 ```
 
-**Verificar services:**
+Para acessar a aplicacao:
 
 ```bash
-kubectl get services -n cp2-prod
+minikube service app-portal -n producao --url
 ```
 
-**Verificar logs:**
+### Windows
+
+1. Abra o Git Bash ou o terminal WSL na pasta do repositorio.
+2. Execute:
+
+   ```bash
+   ./deploy.sh
+   ```
+
+3. Em um prompt PowerShell ou CMD, valide:
+
+   ```powershell
+   kubectl get all -n producao
+   start http://localhost:30080
+   ```
+
+Se preferir ficar apenas no PowerShell, utilize os manifestos diretamente:
+
+```powershell
+kubectl apply -k kubernetes/
+kubectl wait --for=condition=ready pod -l app=app-portal -n producao --timeout=120s
+```
+
+## Testes Pos-Deploy (todos os Sistemas)
+
+### Checagem de recursos criados
 
 ```bash
-kubectl logs -f deployment/<nome-do-deployment> -n cp2-prod
+kubectl get namespace producao
+kubectl get all -n producao
+kubectl get hpa,networkpolicy,pdb -n producao
+kubectl describe deployment app-portal -n producao
 ```
 
-### 6. Acessar a Aplicação
-
-#### Para macOS e Windows (Docker Desktop):
+### Validar conteudo servido
 
 ```bash
-# Port forward para acessar localmente
-kubectl port-forward service/<nome-do-service> 8080:80 -n cp2-prod
+curl http://localhost:30080
+# ou com Minikube:
+curl $(minikube service app-portal -n producao --url)
 ```
 
-#### Para Linux (Minikube):
+### Examinar logs
 
 ```bash
-# Obter URL do serviço
-minikube service <nome-do-service> -n cp2-prod --url
-
-# Ou usar port forward
-kubectl port-forward service/<nome-do-service> 8080:80 -n cp2-prod
+kubectl logs -n producao -l app=app-portal --tail=100
+kubectl logs -n producao -l app=app-portal -f
 ```
 
-Acesse a aplicação em: `http://localhost:8080`
-
-## 🛠️ Comandos Úteis para Desenvolvimento
-
-### Monitoramento
+### Confirmar aplicacao do ConfigMap
 
 ```bash
-# Monitorar recursos
-kubectl top nodes
-kubectl top pods -n cp2-prod
-
-# Dashboard do Kubernetes (se disponível)
-kubectl proxy
-# Acesse: http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
+kubectl exec -n producao deploy/app-portal -- ls /usr/share/nginx/html
+kubectl exec -n producao deploy/app-portal -- head -n 20 /usr/share/nginx/html/index.html
 ```
 
-### Debug
+## Testes de Escalabilidade
+
+### Escala manual rapida
 
 ```bash
-# Descrever recursos
-kubectl describe pod <pod-name> -n cp2-prod
-kubectl describe service <service-name> -n cp2-prod
-
-# Executar comandos dentro do pod
-kubectl exec -it <pod-name> -n cp2-prod -- /bin/bash
-
-# Ver eventos
-kubectl get events -n cp2-prod --sort-by='.lastTimestamp'
+kubectl apply -f kubernetes/scale.yaml
+# ou
+kubectl scale deployment app-portal -n producao --replicas=5
+kubectl get pods -n producao
 ```
 
-### Limpeza
+### Monitorar o HPA
 
 ```bash
-# Remover todos os recursos
-kubectl delete -f k8s/ --recursive
-
-# Remover namespace
-kubectl delete namespace cp2-prod
+kubectl get hpa app-portal-hpa -n producao -w
 ```
 
-#### Para Linux (parar Minikube):
+### Gerar carga (via BusyBox) para acionar o HPA
 
 ```bash
-minikube stop
-minikube delete  # Para remover completamente
+kubectl run -i --tty load-generator --rm --image=busybox --restart=Never -n producao -- /bin/sh
+# dentro do pod:
+# while true; do wget -q -O- http://app-portal.producao.svc.cluster.local/; sleep 0.05; done
 ```
 
-## 📁 Estrutura do Projeto
-
-```
-k8s-cp2-prod-kubernetes/
-├── k8s/
-│   ├── configmaps/     # Configurações da aplicação
-│   │   └── app-config.yaml
-│   ├── secrets/        # Dados sensíveis
-│   │   └── db-secrets.yaml
-│   ├── deployments/    # Definições de deployment
-│   │   ├── frontend-deployment.yaml
-│   │   ├── api-deployment.yaml
-│   │   └── db-statefulset.yaml
-│   ├── services/       # Exposição de serviços
-│   │   ├── frontend-service.yaml
-│   │   ├── api-service.yaml
-│   │   └── db-service.yaml
-│   └── ingress/        # Regras de ingress
-│       └── main-ingress.yaml
-├── manifests/         # Manifestos combinados
-├── scripts/           # Scripts de automação
-│   ├── deploy.sh
-│   └── cleanup.sh
-└── README.md           # Este arquivo
-```
-
-## 🔄 CI/CD Pipeline
-
-A TechFleet implementou um pipeline de CI/CD para automação do ciclo de vida da aplicação:
-
-1. **Build**: Compilação e teste dos componentes
-2. **Container Build**: Construção das imagens Docker
-3. **Security Scanning**: Análise de segurança das imagens
-4. **Artifact Storage**: Armazenamento no Registry
-5. **Deployment**: Deploy automatizado em ambientes Kubernetes
-6. **Monitoring**: Monitoramento contínuo pós-deploy
-
-## 📊 Monitoramento e Observabilidade
-
-A solução inclui:
-
-- **Prometheus**: Coleta de métricas
-- **Grafana**: Visualização de métricas
-- **Loki**: Agregação de logs
-- **Alertmanager**: Alertas baseados em métricas
-
-### Dashboards recomendados:
-
-- Status geral do cluster
-- Performance dos microserviços
-- Métricas de negócio
-- Logs consolidados
-
-## 🧪 Testes de Carga e Escalabilidade
-
-Para testar a escalabilidade da solução:
+Em outro terminal acompanhe:
 
 ```bash
-# Instalar o hey (ferramenta de teste de carga)
-go get -u github.com/rakyll/hey
-
-# Executar teste de carga
-hey -n 10000 -c 100 http://<ingress-url>/api/health
-
-# Observar a escalabilidade automática
-kubectl get hpa -n cp2-prod -w
+kubectl get pods -n producao -w
+kubectl get hpa -n producao -w
 ```
 
-## 🔐 Segurança
+## Recuperacao automatica (Auto-healing)
 
-A implementação segue as melhores práticas de segurança para Kubernetes:
+1. Remova um pod propositalmente:
 
-- NetworkPolicies para isolamento de tráfego
-- RBAC para controle de acesso
-- Secrets para dados sensíveis
-- Imagens com least privilege
-- Scanning contínuo de vulnerabilidades
+   ```bash
+   kubectl delete pod -n producao $(kubectl get pods -n producao -l app=app-portal -o jsonpath="{.items[0].metadata.name}")
+   ```
 
-## 📈 Roadmap
+2. Observe a reposicao automatica:
 
-Próximos passos da TechFleet para evolução da plataforma:
+   ```bash
+   kubectl get pods -n producao -w
+   ```
 
-1. Implementação de Service Mesh (Istio)
-2. Integração com soluções de logging centralizado
-3. Implementação de GitOps com Flux/ArgoCD
-4. Expansão para multi-cloud utilizando clusters federados
+3. Valide que o servico continua acessivel:
 
-## 📚 Recursos Adicionais
+   ```bash
+   curl http://localhost:30080
+   ```
 
-- [Documentação oficial do Kubernetes](https://kubernetes.io/docs/)
-- [Documentação do Docker](https://docs.docker.com/)
-- [Kubectl Cheat Sheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/)
-- [Minikube Documentation](https://minikube.sigs.k8s.io/docs/)
-- [Práticas recomendadas para Kubernetes em produção](https://learnk8s.io/production-best-practices)
-- [CNCF Cloud Native Landscape](https://landscape.cncf.io/)
+O PodDisruptionBudget garante pelo menos 2 replicas saudaveis durante manutencoes programadas, enquanto o Deployment recria qualquer pod interrompido.
 
-## 🤝 Contribuindo
+## Limpeza do Ambiente
 
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+```bash
+kubectl delete -k kubernetes/
+# opcional para remover o namespace inteiro
+kubectl delete namespace producao
+```
 
-## 📄 Licença
+> Os scripts em `scripts/` sao vestigios de uma estrutura anterior (`k8s/`). Utilize sempre o `deploy.sh` da raiz ou `kubectl apply -k kubernetes/`.
 
-Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+## Estrutura do Repositorio
+
+```
+.
+|-- deploy.sh               # Script principal de deploy (kubectl + kustomize)
+|-- kubernetes/             # Manifestos Kubernetes (namespace, deployment, service, HPA etc.)
+|-- frontend/index.html     # Conteudo original utilizado no ConfigMap
+|-- COMMANDS.md             # Colecao de comandos uteis para operacao
+|-- IMPROVEMENTS.md         # Relatorio das melhorias aplicadas
+|-- scripts/                # Scripts legados (nao acompanham a estrutura atual)
+`-- screenshots/            # Evidencias da aplicacao em execucao
+```
+
+## Documentacao Complementar
+
+- `COMMANDS.md`: passo a passo detalhado de observabilidade, testes e troubleshooting.
+- `IMPROVEMENTS.md`: lista das evolucoes feitas em relacao ao projeto original.
+
+## Autor
+
+Projeto desenvolvido por Bruno Pinheiro dos Santos como parte do Checkpoint 2 de Kubernetes & Serverless - FIAP 2025.
