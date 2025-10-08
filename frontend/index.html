@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>TechFleet - Portal de Aplicação Kubernetes</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f9fc;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        header {
+            background: linear-gradient(135deg, #0066cc, #004080);
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .logo {
+            width: 150px;
+            margin-bottom: 1rem;
+        }
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            flex: 1;
+        }
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        h1 {
+            color: white;
+            margin: 0.5rem 0;
+            font-size: 2.5rem;
+        }
+        h2 {
+            color: #0066cc;
+            margin-top: 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        h3 {
+            color: #004080;
+        }
+        .pod-info {
+            background-color: #e6f3ff;
+            border-left: 4px solid #0066cc;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 4px 4px 0;
+        }
+        footer {
+            background-color: #004080;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            margin-top: auto;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+        .highlight {
+            color: #0066cc;
+            font-weight: bold;
+        }
+        .fiap-info {
+            margin-top: 1rem;
+            text-align: center;
+        }
+        
+        /* Adicionando estilos para métricas */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        
+        .metric-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
+            text-align: center;
+            transition: transform 0.2s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #0066cc;
+            margin: 0.5rem 0;
+        }
+        
+        .metric-label {
+            color: #666;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        /* Botões estilizados */
+        .button-container {
+            display: flex;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            justify-content: center;
+        }
+        
+        .button {
+            display: inline-block;
+            padding: 0.8rem 1.5rem;
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            text-decoration: none;
+        }
+        
+        .button:hover {
+            background-color: #004d99;
+        }
+        
+        .button.secondary {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        
+        .button.secondary:hover {
+            background-color: #e0e0e0;
+        }
+        
+        /* Estilo para o diagrama de arquitetura */
+        .architecture {
+            margin: 2rem 0;
+            text-align: center;
+        }
+        
+        .architecture img {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+        <header>
+            <img src="https://kubernetes.io/images/kubernetes-horizontal-color.png" alt="Kubernetes Logo" class="logo">
+            <h1>TechFleet - Ambiente de Produção Kubernetes</h1>
+            <p>Migração para Containers Orquestrados | Portal de Aplicação</p>
+        </header>    <main>
+        <div class="container">
+            <div class="pod-info">
+                <h3>Informações do Pod</h3>
+                <p><strong>Hostname:</strong> <span id="hostname">localhost</span></p>
+                <p><strong>Namespace:</strong> producao</p>
+                <p><strong>Aplicação:</strong> app-portal</p>
+                <p><strong>Data atual:</strong> <script>document.write(new Date().toLocaleDateString())</script></p>
+            </div>
+            
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-label">Réplicas Ativas</div>
+                    <div class="metric-value">3/3</div>
+                    <div>Pods em execução</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Disponibilidade</div>
+                    <div class="metric-value">100%</div>
+                    <div>Uptime do serviço</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Balanceamento</div>
+                    <div class="metric-value">Ativo</div>
+                    <div>Distribuição de tráfego</div>
+                </div>
+            </div>
+            
+            <h2>Sobre este Ambiente TechFleet</h2>
+            <p>Este é um ambiente de produção simulado da <span class="highlight">TechFleet</span> rodando em um cluster Kubernetes local. O objetivo é validar a aplicação web <span class="highlight">app-portal</span> antes de migrá-la para a nuvem da empresa.</p>
+            
+            <h3>Características da Implantação:</h3>
+            <ul>
+                <li>Deployment com 3 réplicas (escalável para 5)</li>
+                <li>Service do tipo NodePort (porta 30080)</li>
+                <li>Alta disponibilidade e recuperação automática</li>
+                <li>Customização de conteúdo via ConfigMap</li>
+            </ul>
+            
+            <h3>Este sistema demonstra:</h3>
+            <ul>
+                <li>Escalabilidade - capacidade de aumentar réplicas sob demanda</li>
+                <li>Resiliência - recuperação automática após falhas</li>
+                <li>Balanceamento de carga - distribuição do tráfego entre réplicas</li>
+            </ul>
+            
+            <div class="button-container">
+                <a href="#" class="button">Verificar Pods</a>
+                <a href="#" class="button secondary">Testar Escalabilidade</a>
+            </div>
+            
+            <div class="architecture">
+                <h3>Arquitetura da Solução</h3>
+                <img src="https://d33wubrfki0l68.cloudfront.net/2475489eaf20163ec0f54ddc1d92aa8d4c87c96b/e7c81/images/docs/components-of-kubernetes.svg" alt="Arquitetura Kubernetes" width="600">
+            </div>
+        </div>
+        
+        <div class="container fiap-info">
+            <h2>TechFleet - Cloud Infrastructure</h2>
+            <p><strong>Empresa:</strong> TechFleet</p>
+            <p><strong>Engenheiro de Cloud:</strong> Bruno Pinheiro dos Santos</p>
+            <p><strong>RM:</strong> 556184</p>
+            <p><strong>Projeto:</strong> Migração para Kubernetes | FIAP 2025</p>
+        </div>
+    </main>
+    
+    <footer>
+        <p>© 2025 TechFleet | Desenvolvido para demonstração de Kubernetes</p>
+    </footer>
+    
+    <script>
+        // Simulação dinâmica - Em um ambiente real, isso viria do hostname do pod
+        document.getElementById('hostname').textContent = 'app-portal-' + Math.floor(Math.random() * 900 + 100) + '-' + Math.random().toString(36).substring(2, 7);
+        
+        // Simulação de botões
+        document.querySelectorAll('.button').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                alert('Esta é uma interface de demonstração. Em um ambiente real, esta ação seria executada no cluster Kubernetes.');
+            });
+        });
+    </script>
+</body>
+</html>

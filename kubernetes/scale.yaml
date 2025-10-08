@@ -1,0 +1,15 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-portal
+  namespace: producao
+  labels:
+    app: app-portal
+    app.kubernetes.io/name: app-portal
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: app-portal-system
+    app.kubernetes.io/managed-by: kubectl
+    app.kubernetes.io/version: '1.0.0'
+    environment: production
+spec:
+  replicas: 5

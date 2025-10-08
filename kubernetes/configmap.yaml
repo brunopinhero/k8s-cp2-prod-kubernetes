@@ -1,0 +1,150 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-portal-content
+  namespace: producao
+  labels:
+    app: app-portal
+    app.kubernetes.io/name: app-portal
+    app.kubernetes.io/component: config
+    app.kubernetes.io/part-of: app-portal-system
+    app.kubernetes.io/managed-by: kubectl
+    app.kubernetes.io/version: '1.0.0'
+    environment: production
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>FIAP - Checkpoint 2 - Kubernetes</title>
+        <style>
+            body {
+                font-family: 'Roboto', Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+                background-color: #f5f9fc;
+                color: #333;
+                display: flex;
+                flex-direction: column;
+                min-height: 100vh;
+            }
+            header {
+                background: linear-gradient(135deg, #0066cc, #004080);
+                color: white;
+                text-align: center;
+                padding: 2rem 0;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+            .logo {
+                width: 150px;
+                margin-bottom: 1rem;
+            }
+            main {
+                max-width: 1200px;
+                margin: 2rem auto;
+                padding: 0 2rem;
+                flex: 1;
+            }
+            .container {
+                background-color: white;
+                border-radius: 8px;
+                box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+                padding: 2rem;
+                margin-bottom: 2rem;
+            }
+            h1 {
+                color: white;
+                margin: 0.5rem 0;
+                font-size: 2.5rem;
+            }
+            h2 {
+                color: #0066cc;
+                margin-top: 0;
+                padding-bottom: 0.5rem;
+                border-bottom: 2px solid #f0f0f0;
+            }
+            h3 {
+                color: #004080;
+            }
+            .pod-info {
+                background-color: #e6f3ff;
+                border-left: 4px solid #0066cc;
+                padding: 1rem;
+                margin: 1rem 0;
+                border-radius: 0 4px 4px 0;
+            }
+            footer {
+                background-color: #004080;
+                color: white;
+                text-align: center;
+                padding: 1rem;
+                margin-top: auto;
+            }
+            code {
+                background-color: #f4f4f4;
+                padding: 0.2rem 0.5rem;
+                border-radius: 4px;
+                font-family: 'Courier New', monospace;
+            }
+            .highlight {
+                color: #0066cc;
+                font-weight: bold;
+            }
+            .fiap-info {
+                margin-top: 1rem;
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <img src="https://kubernetes.io/images/kubernetes-horizontal-color.png" alt="Kubernetes Logo" class="logo">
+            <h1>TechFleet - Ambiente de Produção Kubernetes</h1>
+            <p>Migração para Containers Orquestrados | Portal de Aplicação</p>
+        </header>
+        
+        <main>
+            <div class="container">
+                <div class="pod-info">
+                    <h3>Informações do Pod</h3>
+                    <p><strong>Hostname:</strong> <script>document.write(window.location.hostname)</script></p>
+                    <p><strong>Namespace:</strong> producao</p>
+                    <p><strong>Aplicação:</strong> app-portal</p>
+                    <p><strong>Data atual:</strong> <script>document.write(new Date().toLocaleDateString())</script></p>
+                </div>
+                
+                <h2>Sobre este Ambiente TechFleet</h2>
+                <p>Este é um ambiente de produção simulado da <span class="highlight">TechFleet</span> rodando em um cluster Kubernetes local. O objetivo é validar a aplicação web <span class="highlight">app-portal</span> antes de migrá-la para a nuvem da empresa.</p>
+                
+                <h3>Características da Implantação:</h3>
+                <ul>
+                    <li>Deployment com 3 réplicas (escalável para 5)</li>
+                    <li>Service do tipo NodePort (porta 30080)</li>
+                    <li>Alta disponibilidade e recuperação automática</li>
+                    <li>Customização de conteúdo via ConfigMap</li>
+                </ul>
+                
+                <h3>Este sistema demonstra:</h3>
+                <ul>
+                    <li>Escalabilidade - capacidade de aumentar réplicas sob demanda</li>
+                    <li>Resiliência - recuperação automática após falhas</li>
+                    <li>Balanceamento de carga - distribuição do tráfego entre réplicas</li>
+                </ul>
+            </div>
+            
+            <div class="container fiap-info">
+                <h2>TechFleet - Cloud Infrastructure</h2>
+                <p><strong>Empresa:</strong> TechFleet</p>
+                <p><strong>Engenheiro de Cloud:</strong> Bruno Pinheiro dos Santos</p>
+                <p><strong>RM:</strong> 556184</p>
+                <p><strong>Projeto:</strong> Migração para Kubernetes | FIAP 2025</p>
+            </div>
+        </main>
+        
+        <footer>
+            <p>© 2025 TechFleet | Desenvolvido para demonstração de Kubernetes</p>
+        </footer>
+    </body>
+    </html>

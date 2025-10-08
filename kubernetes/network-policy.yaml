@@ -1,0 +1,58 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: app-portal-network-policy
+  namespace: producao
+  labels:
+    app: app-portal
+    app.kubernetes.io/name: app-portal
+    app.kubernetes.io/component: security
+    app.kubernetes.io/part-of: app-portal-system
+    app.kubernetes.io/managed-by: kubectl
+    app.kubernetes.io/version: "1.0.0"
+    environment: production
+spec:
+  podSelector:
+    matchLabels:
+      app: app-portal
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Permitir tráfego HTTP na porta 80
+  - from: []
+    ports:
+    - protocol: TCP
+      port: 80
+  # Permitir tráfego de health checks do Kubernetes
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: TCP
+      port: 80
+  egress:
+  # Permitir DNS
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Permitir saída para APIs do Kubernetes
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: TCP
+      port: 443
+  # Permitir comunicação entre pods da mesma aplicação
+  - to:
+    - podSelector:
+        matchLabels:
+          app: app-portal
+    ports:
+    - protocol: TCP
+      port: 80

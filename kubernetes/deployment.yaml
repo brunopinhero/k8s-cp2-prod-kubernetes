@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-portal
+  namespace: producao
+  labels:
+    app: app-portal
+    app.kubernetes.io/name: app-portal
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: app-portal-system
+    app.kubernetes.io/managed-by: kubectl
+    app.kubernetes.io/version: '1.0.0'
+    environment: production
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: app-portal
+  template:
+    metadata:
+      labels:
+        app: app-portal
+        app.kubernetes.io/name: app-portal
+        app.kubernetes.io/component: frontend
+        app.kubernetes.io/part-of: app-portal-system
+        app.kubernetes.io/version: '1.0.0'
+        environment: production
+    spec:
+      containers:
+        - name: app-portal
+          image: nginx:latest
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: custom-index
+              mountPath: /usr/share/nginx/html/
+          resources:
+            limits:
+              memory: '256Mi'
+              cpu: '200m'
+            requests:
+              memory: '128Mi'
+              cpu: '100m'
+          startupProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 3
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+      volumes:
+        - name: custom-index
+          configMap:
+            name: app-portal-content

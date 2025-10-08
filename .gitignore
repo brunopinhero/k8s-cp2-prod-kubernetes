@@ -1,0 +1,18 @@
+# Arquivos de sistema operacional
+.DS_Store
+Thumbs.db
+
+# Arquivos temporários
+*.swp
+*.swo
+*~
+
+# Arquivos de log
+*.log
+
+# Pastas locais que não devem ser incluídas
+.kube/
+.minikube/
+node_modules/
+.idea/
+.vscode/
