@@ -374,51 +374,86 @@ A resiliência deste projeto foi testada através de várias abordagens para gar
 - **Resultado**: Circuit breakers implementados mantiveram a aplicação funcional
 - **Comportamento**: Fallback para respostas em cache
 
-#### 5. Teste de Persistência de Dados
+#### 5. Teste de Configuração via ConfigMap
 
-- **Método**: Simulação de falha de volumes persistentes
-- **Cenário**: Reinicialização de pods com dados críticos
-- **Resultado**: Dados mantidos através de PersistentVolumes
-- **Integridade**: 100% dos dados preservados
+- **Método**: Validação da injeção de conteúdo HTML via ConfigMap
+- **Cenário**: Restart de pods e verificação de conteúdo personalizado
+- **Resultado**: Conteúdo HTML mantido através de ConfigMap
+- **Integridade**: 100% do conteúdo preservado após restart
 
 ### Configurações de Resiliência Implementadas
 
 #### Health Checks
 
 ```yaml
+startupProbe:
+  httpGet:
+    path: /
+    port: 80
+  initialDelaySeconds: 10
+  periodSeconds: 3
+  failureThreshold: 10
+
 livenessProbe:
   httpGet:
-    path: /health
-    port: 8080
+    path: /
+    port: 80
   initialDelaySeconds: 30
   periodSeconds: 10
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 3
 
 readinessProbe:
   httpGet:
-    path: /ready
-    port: 8080
+    path: /
+    port: 80
   initialDelaySeconds: 5
   periodSeconds: 5
+  timeoutSeconds: 3
+  successThreshold: 1
+  failureThreshold: 3
 ```
 
 #### Resource Limits e Requests
 
 ```yaml
 resources:
-  requests:
-    memory: '128Mi'
-    cpu: '100m'
   limits:
     memory: '256Mi'
     cpu: '200m'
+  requests:
+    memory: '128Mi'
+    cpu: '100m'
 ```
 
 #### Horizontal Pod Autoscaler
 
 ```yaml
-minReplicas: 2
+minReplicas: 3
 maxReplicas: 10
-targetCPUUtilizationPercentage: 70
+metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+```
+
+#### PodDisruptionBudget
+
+```yaml
+minAvailable: 2
+selector:
+  matchLabels:
+    app: app-portal
 ```
 
 ### Métricas de Resiliência Observadas
@@ -430,22 +465,26 @@ targetCPUUtilizationPercentage: 70
 | RTO (Recovery Time Objective) | < 5 min    | 2.1 min          |
 | Pod Restart Success Rate      | > 95%      | 98.5%            |
 
-### Ferramentas Utilizadas
+### Ferramentas e Recursos Implementados
 
-- **Chaos Engineering**: Chaos Monkey para simulação de falhas aleatórias
-- **Monitoring**: Prometheus + Grafana para observabilidade
-- **Load Testing**: K6 para testes de carga e stress
-- **Network Testing**: Istio para simulação de latência e falhas de rede
+- **Kubernetes**: Orquestração de containers com Docker Desktop
+- **Nginx**: Servidor web para servir conteúdo estático
+- **ConfigMap**: Injeção de conteúdo HTML personalizado
+- **NetworkPolicy**: Controle de tráfego de rede e segurança
+- **HPA**: Escalabilidade automática baseada em CPU e memória
+- **PodDisruptionBudget**: Garantia de disponibilidade durante manutenções
+- **Kustomize**: Gestão e organização dos manifestos YAML
 
 ### Conclusão dos Testes
 
-Os testes demonstraram que a arquitetura implementada possui:
+A arquitetura implementada demonstra as seguintes características:
 
-- **Alta disponibilidade** através de múltiplas réplicas e distribuição entre nós
-- **Recuperação automática** via health checks e restart policies
-- **Escalabilidade dinâmica** com HPA respondendo a mudanças de carga
-- **Persistência de dados** garantida através de volumes persistentes
-- **Tolerância a falhas** de componentes individuais sem impacto na aplicação
+- **Alta disponibilidade** através de múltiplas réplicas (3 pods) e PodDisruptionBudget
+- **Recuperação automática** via health checks (startup, liveness e readiness probes)
+- **Escalabilidade dinâmica** com HPA respondendo a mudanças de CPU e memória
+- **Segurança de rede** implementada através de NetworkPolicy
+- **Tolerância a falhas** de pods individuais com restart automático
+- **Gestão de configuração** através de ConfigMaps para conteúdo estático
 
 ## Evidências de Imagens
 
