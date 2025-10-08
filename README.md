@@ -1,6 +1,5 @@
-# TechFleet - Simulação de Ambiente de Produção Kubernetes
-
-![TechFleet Logo](https://via.placeholder.com/200x80/0066cc/ffffff?text=TechFleet)
+# TechFleet 
+# Simulação de Ambiente de Produção Kubernetes
 
 ## TechFleet Cloud Infrastructure Project
 
