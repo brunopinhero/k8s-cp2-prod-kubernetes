@@ -488,9 +488,14 @@ A arquitetura implementada demonstra as seguintes características:
 
 ## Evidências de Imagens
 
-As imagens abaixo demonstram a validação e o provisionamento da aplicação TechFleet Portal no cluster Kubernetes:
+As imagens abaixo demonstram a validação, o provisionamento e o escalonamento da aplicação TechFleet Portal no cluster Kubernetes:
 
 | Docker Desktop - Validação de Recursos                                            | Sistema Provisionado Localmente                          |
 | --------------------------------------------------------------------------------- | -------------------------------------------------------- |
 | ![Docker Desktop](screenshots/dockerdesktop.png)                                  | ![Sistema Local](screenshots/sistemaonline.png)          |
 | Comandos executados no Docker Desktop validando a criação dos recursos Kubernetes | Aplicação TechFleet Portal funcionando no ambiente local |
+
+| Evidência Scaling Pods (HPA/Manual)          | Validações de Recursos e Probes           |
+| -------------------------------------------- | ----------------------------------------- |
+| ![Scaling Pods](screenshots/escalarpods.png) | ![Validações](screenshots/validacoes.png) |
+| Escalonamento automático/manual dos pods     | Validação dos recursos, probes e status   |
